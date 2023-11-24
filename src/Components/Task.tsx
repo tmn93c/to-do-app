@@ -1,27 +1,21 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { AiOutlineDelete } from "react-icons/ai";
 import { CiEdit } from "react-icons/ci";
-import { MdOutlineDone } from "react-icons/md";
-import { RxCross2 } from "react-icons/rx";
+import useTrelloStore, { COMPLETED, PENDING, TaskItem } from "../store";
+import { Menu, Transition } from "@headlessui/react";
+import { HiDotsVertical } from "react-icons/hi";
+import { MdDone, MdPending } from "react-icons/md";
 
-const Task = ({ task, onEditTask, onDeleteTask, onToggleCompleted }: any) => {
+const Task = ({ task, onDeleteTask }: any) => {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
-
+  const changeOpenModal = useTrelloStore((state) => state.changeOpenModal);
+  const changeOpenTask = useTrelloStore((state) => state.changeOpenTask);
+  const editTask = useTrelloStore((state) => state.editTask);
   const handleEdit = () => {
     setEditing(true);
-  };
-
-  const handleCancel = () => {
-    setEditing(false);
-    setTitle(task.title);
-  };
-
-  const handleDone = () => {
-    if (title.trim()) {
-      onEditTask(task.id, title.trim());
-      setEditing(false);
-    }
+    changeOpenModal(true);
+    changeOpenTask(task);
   };
 
   const handleDelete = (e: { preventDefault: () => void }) => {
@@ -29,65 +23,30 @@ const Task = ({ task, onEditTask, onDeleteTask, onToggleCompleted }: any) => {
     onDeleteTask(task.id);
   };
 
-  const handleToggleCompleted = () => {
-    onToggleCompleted(task.id);
+  const handleChangeStatus = (status: string) => {
+    task.status = status;
+    editTask(task);
   };
 
-  const handleChange = (e: { target: { value: any } }) => {
-    setTitle(e.target.value);
-  };
+  let colorTextStatus = "";
+  if (task.status === COMPLETED) {
+    colorTextStatus = "text-green-500";
+  }
+  if (task.status === PENDING) {
+    colorTextStatus = "text-red-500";
+  }
 
   return (
     <li className=" mb-1 border-b border-gray-300 space-y-2">
-      {editing ? (
-        <form
-          onSubmit={handleDone}
-          className=" flex items-center justify-between p-1 px-3 w-full"
-        >
-          <div className=" flex items-center space-x-3 w-full">
-            <input
-              type="text"
-              value={title}
-              onChange={handleChange}
-              className="w-full bg-transparent py-3 text-lg"
-            />
-          </div>
-          <div className=" flex space-x-3">
-            <button type="submit">
-              <MdOutlineDone
-                size={20}
-                className=" hover:text-green-400 text-gray-500"
-              />
-            </button>
-            <button type="button" onClick={handleCancel}>
-              <RxCross2
-                size={20}
-                className=" text-gray-500 hover:text-orange-400"
-              />
-            </button>
-          </div>
-        </form>
-      ) : (
+      {
         <div className=" flex items-center justify-between p-4 px-3">
           <div className=" flex items-center space-x-3">
-            <input
-              type="checkbox"
-              checked={task.completed}
-              onChange={handleToggleCompleted}
-              className="round rounded-none"
-            />
-
-            <span
-              className={` ${
-                task.completed
-                  ? "line-through text-gray-500 text-lg"
-                  : "text-lg"
-              } `}
-            >
-              {task.title}
-            </span>
+            <span className={`text-gray-500 text-lg`}>{task.title}</span>
           </div>
           <div className=" flex items-center space-x-3">
+            <span className={`${colorTextStatus} text-gray-500 text-lg `}>
+              {task.status}
+            </span>
             <button onClick={handleEdit}>
               <CiEdit
                 size={20}
@@ -100,9 +59,52 @@ const Task = ({ task, onEditTask, onDeleteTask, onToggleCompleted }: any) => {
                 className=" text-gray-500 hover:text-red-500"
               />
             </button>
+            <Menu as="div" className="flex relative text-left">
+              <Menu.Button>
+                <HiDotsVertical />
+              </Menu.Button>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-10">
+                  <Menu.Item>
+                    <span
+                      className="flex px-4 sm:px-6 items-center py-4 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+                      onClick={() => handleChangeStatus(COMPLETED)}
+                    >
+                      <span className="block text-neutral-400 mr-2">
+                        <MdDone />
+                      </span>
+                      <span className="truncate block text-neutral-700 dark:text-neutral-200">
+                        Mark a task as completed
+                      </span>
+                    </span>
+                  </Menu.Item>
+                  <Menu.Item>
+                    <span
+                      className="flex px-4 sm:px-6 items-center py-4 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+                      onClick={() => handleChangeStatus(PENDING)}
+                    >
+                      <span className="block text-neutral-400 mr-2">
+                        <MdPending />
+                      </span>
+                      <span className="truncate block text-neutral-700 dark:text-neutral-200">
+                        Mark a task as pending
+                      </span>
+                    </span>
+                  </Menu.Item>
+                </Menu.Items>
+              </Transition>
+            </Menu>
           </div>
         </div>
-      )}
+      }
     </li>
   );
 };

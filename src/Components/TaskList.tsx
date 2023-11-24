@@ -1,22 +1,17 @@
-import Task from "./Task";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DraggingStyle,
-  NotDraggingStyle,
-} from "react-beautiful-dnd";
-import { Key } from "react";
 import _ from "lodash";
-import useTrelloStore from "../store";
+import { Key } from "react";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import useTrelloStore, { COMPLETED, PENDING } from "../store";
+import Task from "./Task";
 
-const TaskList = ({
-  tasks,
-  onEditTask,
-  onDeleteTask,
-  onToggleCompleted,
-}: any) => {
-  const reversedTasks = tasks.slice();
+const TaskList = ({ tasks, onDeleteTask, status }: any) => {
+  let reversedTasks = tasks;
+  if (status === COMPLETED || status === PENDING) {
+    reversedTasks = reversedTasks.filter(
+      (item: { status: any }) => item.status === status
+    );
+  }
+
   const grid = tasks.length;
 
   const getListStyle = (isDraggingOver: boolean) => ({
@@ -70,9 +65,7 @@ const TaskList = ({
                         <Task
                           key={task.id}
                           task={task}
-                          onEditTask={onEditTask}
                           onDeleteTask={onDeleteTask}
-                          onToggleCompleted={onToggleCompleted}
                         />
                       </div>
                     )}

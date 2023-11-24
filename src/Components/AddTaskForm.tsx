@@ -21,11 +21,6 @@ export const getErrorMessage = (
   return <div className="text-red-700 flex">{errorMessage}</div>;
 };
 
-interface IFormInput {
-  title: string;
-  description: string;
-  dueDate: string;
-}
 const forms = {
   title: {
     valid: { required: true, maxLength: 80, minLength: 3 },
